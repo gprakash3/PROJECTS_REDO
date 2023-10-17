@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking appointment</title>
+    <style>
+        form {
+            display: flex;
+            flex-direction: column;
+            width: 30%;
+            /* text-align: center; */
+        }
+    </style>
+</head>
+
+<body>
+    <form onsubmit="objectcreation(event)" class="form">
+        name:<br><input type="text" name="name" id="name"><br>
+        Email:<br><input type="email" name="email" id="email"><br>
+        Phone Number:<br><input type="tel" name="phone" id="phone"><br>
+        <button type="submit">Book appointment</button>
+    </form>
+    <div id="display">
+
+    </div>
+</body>
+<script src="app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+<script>
+    const display = document.getElementById('display');
+
+    function objectcreation(e) {
+        event.preventDefault();
+        console.log('clicked submit button');
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const phone = document.getElementById('phone').value;
+
+        const obj = { name: name, email: email, phone: phone };
+        console.log('file sent for adding')
+        addtodb(obj);
+    }
+
+    function showonscreen(obj) {
+
+        const div = document.createElement('div');
+        const li = document.createElement('li');
+
+        li.appendChild(document.createTextNode(obj.name));
+        li.appendChild(document.createTextNode('-'));
+        li.appendChild(document.createTextNode(obj.email));
+        li.appendChild(document.createTextNode('-'));
+        li.appendChild(document.createTextNode(obj.phone));
+
+        const del = document.createElement('button');
+        del.innerHTML = 'DELETE';
+        li.appendChild(del);
+        div.appendChild(li);
+        display.appendChild(div);
+        del.addEventListener('click', async (e) => {
+            try {
+                e.preventDefault();
+                const id=obj.id;
+                let promise = await axios.post(`http://localhost:3000/delete/${id}`);
+                console.log(promise);
+                display.removeChild(div);
+            }
+            catch (err) {
+                console.log("error in delete");
+                console.log(err);
+            }
+        })
+    }
+
+   async function addtodb(obj){
+    try{
+        const res = await axios.post('http://localhost:3000/add', obj);
+        console.log(res.data.datas);
+        showonscreen(res.data.datas);
+    }
+    catch(err){
+        console.log('error while adding to database');
+        console.log(err);
+    }
+    }
+
+    window.addEventListener("DOMContentLoaded", async() => {
+        try{
+            const res= await axios.get('http://localhost:3000/getall');
+            console.log(res.data);
+            for(let i=0;i<res.data.datas.length;i++)
+            {
+            showonscreen(res.data.datas[i]);
+            }
+        }
+        catch(err){
+            console.log('error in getting all data');
+            
+        }
+    })
+</script>
+
+</html>
